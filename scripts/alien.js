@@ -1,12 +1,12 @@
 
 const aliensMap = [
-    '40', '40', '40', '40', '40', '40', '40', '40', '40', '40', '40', 
+    '40', '40', '40', '40', '40', '40', '40', '40', '40', '40', '40',
 
     '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20',
     '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20',
 
-    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', 
-    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', 
+    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10',
+    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10',
 
 ]
 
@@ -18,48 +18,48 @@ let lastAlienMovement = 0;
 
 
 const aliensSprites = {
-        '40' : [
-                { x : 6, y : 3, w : 16, h : 16},
-                { x : 6, y : 25, w : 16, h : 16},
-            
-        ],
-        '20' : [
-    
-                { x : 32, y : 3, w : 22, h : 16},
-                { x : 32, y : 25, w : 22, h : 16},
-        ],
-        '10' : [
-                { x : 60, y : 3, w : 24, h : 16},
-                { x : 60, y : 25, w : 24, h : 16},
-            
-        ]
+    '40': [
+        { x: 6, y: 3, width: 16, height: 16 },
+        { x: 6, y: 25, width: 16, height: 16 },
+
+    ],
+    '20': [
+
+        { x: 32, y: 3, width: 22, height: 16 },
+        { x: 32, y: 25, width: 22, height: 16 },
+    ],
+    '10': [
+        { x: 60, y: 3, width: 24, height: 16 },
+        { x: 60, y: 25, width: 24, height: 16 },
+
+    ]
+}
+
+
+function createAliens() {
+    const aliens = [];
+
+    for (let i = 0, line = 0; i < aliensMap.length; i++) {
+        if (i % NB_ALIENS_PER_LINE === 0) {
+            line++;
+        }
+
+        let alienWidth = aliensSprites[aliensMap[i]][0].width;
+        let alienHeight = aliensSprites[aliensMap[i]][0].height;
+
+
+        aliens.push({
+            x: 12 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X,
+            y: 100 + line * ALIEN_SPACE_Y,
+            width: alienWidth,
+            height: alienHeight,
+            points: aliensMap[i],
+            direction: 1,
+            spriteIndex: 0,
+        });
     }
-    
+    return aliens;
 
-    function createAliens() {
-     const aliens = [];
-
-     for( let i = 0, line = 0; i < aliensMap.length; i++) {
-         if (i % NB_ALIENS_PER_LINE === 0) {
-             line++;
-         }
-
-         let alienWidth = aliensSprites[aliensMap[i][ 0 ].width];
-         let alienHeight = aliensSprites[aliensMap[i][ 0 ].height];
-
-
-         aliens.push({
-             x : 12 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X,
-             y : 100 + line * ALIEN_SPACE_Y,
-             width : alienWidth,
-             height : alienHeight,
-             points : aliensMap[i],
-             direction : 1,
-             spriteIndex : 0,
-         });
-     }
-    return aliens; 
-    
 }
 
 
@@ -71,11 +71,11 @@ function animateAliens() {
         // récupération du x de l'alien le plus à droite( et à gauche )
 
         let extremeRightAlien = Math.max(...aliens.map(a => a.x)) + ALIEN_SPACE_X;
-        let extremeLeftAlien = Math.min(...aliens.map(a => a.x));        
+        let extremeLeftAlien = Math.min(...aliens.map(a => a.x));
 
         // parcours du tableau d'aliens pour mise à jour 
-        for ( let i = 0; i < aliens.length; i++) {
-            if(
+        for (let i = 0; i < aliens.length; i++) {
+            if (
                 extremeRightAlien > canvas.width && aliens[i].direction === 1 ||
                 extremeLeftAlien <= 0 && aliens[i].direction === -1
             ) {
@@ -85,32 +85,57 @@ function animateAliens() {
             else {
                 aliens[i].x += 12 * aliens[i].direction;
             }
-        
+
         }
 
 
     } // fin du mouvement des aliens   
+
+    //vérification si un alien se prend un tir de "palyer.bullet"
+    if (player.bullet !== null) {
+        for (let i = 0; i < aliens.length; i++) {
+            if (player.bullet.x > aliens[i].x &&
+                player.bullet.x <= aliens[i].x + aliens[i].width &&
+                player.bullet.y > aliens[i].y &&
+                player.bullet.y <= aliens[i].y + aliens[i].height) {
+                // collision 
+                // argumentation du score du joueur
+                player.score += aliens[i].points;
+                player.bullet = null;
+                // argumentation de la vitesse générale des aliens
+                aliensTimer -= 15;
+                if (aliensTimer < 75) {
+                    aliensTimer = 75;
+                }
+                //suprression de l'alien  du tableau 
+                aliens.splice(i, 1);
+                break;
+
+            }
+        }
+    }
 }
 
 
 
+
 function renderAliens() {
-    for(let i = 0; i < aliens.length; i++) {
+    for (let i = 0; i < aliens.length; i++) {
 
         let points = aliens[i].points;
         let spriteIndex = aliens[i].spriteIndex;
 
         context.drawImage(
             spritesheet,
-            aliensSprites[points][ spriteIndex].x,
-            aliensSprites[points][ spriteIndex].y,
-            aliensSprites[points][ spriteIndex].w,
-            aliensSprites[points][ spriteIndex].h,
-            
+            aliensSprites[points][spriteIndex].x,
+            aliensSprites[points][spriteIndex].y,
+            aliensSprites[points][spriteIndex].width,
+            aliensSprites[points][spriteIndex].height,
+
             aliens[i].x,
             aliens[i].y,
-            aliensSprites[points][ spriteIndex].w,
-            aliensSprites[points][ spriteIndex].h,
+            aliensSprites[points][spriteIndex].width,
+            aliensSprites[points][spriteIndex].height,
 
         )
     }
