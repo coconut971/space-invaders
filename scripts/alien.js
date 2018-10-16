@@ -13,6 +13,9 @@ const aliensMap = [
 const NB_ALIENS_PER_LINE = 11;
 const ALIEN_SPACE_X = 35;
 const ALIEN_SPACE_Y = 28;
+let aliensTimer = 1000;
+let lastAlienMovement = 0;
+
 
 const aliensSprites = {
         '40' : [
@@ -46,11 +49,12 @@ const aliensSprites = {
 
 
          aliens.push({
-             x : 10 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X,
+             x : 12 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X,
              y : 100 + line * ALIEN_SPACE_Y,
              width : alienWidth,
              height : alienHeight,
              points : aliensMap[i],
+             direction : 1,
              spriteIndex : 0,
          });
      }
@@ -62,6 +66,30 @@ const aliensSprites = {
 
 function animateAliens() {
 
+    if (Date.now() - lastAlienMovement > aliensTimer) {
+        lastAlienMovement = Date.now(); //mise a jour de l'instant du dernier mouvement du joueur à "maintenant" 
+        // récupération du x de l'alien le plus à droite( et à gauche )
+
+        let extremeRightAlien = Math.max(...aliens.map(a => a.x)) + ALIEN_SPACE_X;
+        let extremeLeftAlien = Math.min(...aliens.map(a => a.x));        
+
+        // parcours du tableau d'aliens pour mise à jour 
+        for ( let i = 0; i < aliens.length; i++) {
+            if(
+                extremeRightAlien > canvas.width && aliens[i].direction === 1 ||
+                extremeLeftAlien <= 0 && aliens[i].direction === -1
+            ) {
+                aliens[i].direction *= -1;
+                aliens[i].y += 22;
+            }
+            else {
+                aliens[i].x += 12 * aliens[i].direction;
+            }
+        
+        }
+
+
+    } // fin du mouvement des aliens   
 }
 
 
