@@ -17,14 +17,14 @@ let aliensTimer = 1000;
 let lastAlienMovement = 0;
 let alienExplosion = []; // Tableau pour afficher sprite explosion
 let alienSoundNb = 1;
+let aliensShoot = [];
 
 
 const aliensSprites = {
     '40': [
         { x: 6, y: 3, width: 16, height: 16 },
         { x: 6, y: 25, width: 16, height: 16 },
-
-    ],
+     ],
     '20': [
 
         { x: 32, y: 3, width: 22, height: 16 },
@@ -91,6 +91,10 @@ function animateAliens() {
 
         // parcours du tableau d'aliens pour mise à jour 
         for (let i = 0; i < aliens.length; i++) {
+            
+            if(Math.random()> 0.99) {
+                createAlienShoot(aliens[i]);
+            }
             if (
                 extremeRightAlien > canvas.width && aliens[i].direction === 1 ||
                 extremeLeftAlien <= 0 && aliens[i].direction === -1
@@ -147,6 +151,47 @@ function animateAliens() {
             i--;
         }
     }
+
+    //gestion de shoot d'aliens
+    for(let i = 0; i < aliensShoot.length; i++) {
+        aliensShoot[i].y += aliensShoot[i].speed;
+        // si un tir d'alien déborde en bas du canvas
+        if (aliensShoot[i].y > canvas.height) {
+            aliensShoot.splice(i, 1);
+            i--;
+        }
+        else if (
+            aliensShoot[i].x > player.x &&
+            aliensShoot[i].x + aliensShoot[i].width + player.sprite.width &&
+            aliensShoot[i].y + aliensShoot[i].height > player.y &&
+            aliensShoot[i].y > player.y + player.sprite.height
+        ) {
+            //moins une vie 
+            player.lives--;
+
+            // Plus de vies ?
+            if(player.lives === 0) {
+                game_mode = MODE_GAME_OVER;
+                break;
+            }
+            // suppression des tirs aliens en cours, et du shoot player
+            aliensShoot.length = 0; // vide l'array en javascript
+            player.bullet = null;
+
+            sounds['player_death'].play();
+
+
+            // changement du mode de jeu pour 2 secondes 
+            game_mode = MODE_PLAYER_DEAD;
+            setTimeout(() => {
+                //remplacement du joueur à sa position initile 
+                player.x = 100;
+
+                game_mode = MODE_PLAYING;
+            },2000);
+        }  
+    }
+
 }
 
 
@@ -188,8 +233,13 @@ function renderAliens() {
             alienExplosion[i].sprite.height
         );
     }
-
+    for( let i = 0; i < aliensShoot.length; i ++) {
+        context.fillStyle = '#fff';
+        context.fillRect(aliensShoot[i].x, aliensShoot[i].y, aliensShoot[i].width, aliensShoot[i].height)
+    }
 }
+
+
 
 function createExplosion(alien) {
     alienExplosion.push({
@@ -204,4 +254,17 @@ function createExplosion(alien) {
         dateCreated : Date.now()
     });
 }
-
+ 
+function createAlienShoot(aliens) {
+    //shoot
+    sounds['shoot'].play();
+    //ajout d'un shoot d'alien dans le tableau correspondant 
+    aliensShoot.push({
+        x : aliens.x + aliens.width/2,
+        y : aliens.y + aliens.height,
+        width : 4, 
+        height : 10,
+        speed : 5
+ 
+    }) ;
+}
