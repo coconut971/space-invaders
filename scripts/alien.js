@@ -71,11 +71,18 @@ function animateAliens() {
     if (Date.now() - lastAlienMovement > aliensTimer) {
         lastAlienMovement = Date.now(); //mise a jour de l'instant du dernier mouvement du joueur à "maintenant" 
 
-        sounds['invader' + alienSoundNb].play();
+        /*sounds['invader' + alienSoundNb].play();
         alienSoundNb++;
         if (alienSoundNb > 4) {
             alienSoundNb = 1;
-        }    
+        }*/
+        
+        let extremeDownAlien = Math.max(...aliens.map(a => a.y));
+        if (extremeDownAlien + 16 > player.y) {
+            player.lives = 0;
+            sounds['player_death'].play();
+            game_mode = MODE_GAME_OVER;
+        }
 
         // récupération du x de l'alien le plus à droite( et à gauche )
 
