@@ -27,7 +27,7 @@ let game_mode = MODE_PLAYING;
 //chargement d'images sprite avant de démarrer le jeu
 
 const spritesheet = new Image();
-spritesheet.src = '../img/spritesheet.png'
+spritesheet.src = '/img/spritesheet.png'
 spritesheet.onload = function() { // fonction exécutée lorsque le navigateur a fini de chrger de
     player = createPlayer();
     aliens = createAliens();
