@@ -1,12 +1,12 @@
 
 const aliensMap = [
-    '40', '40', '40', '40', '40', '40', '40', '40', '40', '40', '40',
+    40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40,
 
-    '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20',
-    '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20',
+    20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
+    20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20,
 
-    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10',
-    '10', '10', '10', '10', '10', '10', '10', '10', '10', '10', '10',
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
+    10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
 
 ]
 
@@ -15,6 +15,8 @@ const ALIEN_SPACE_X = 35;
 const ALIEN_SPACE_Y = 28;
 let aliensTimer = 1000;
 let lastAlienMovement = 0;
+let alienExplosion = []; // Tableau pour afficher sprite explosion
+let alienSoundNb = 1;
 
 
 const aliensSprites = {
@@ -49,13 +51,13 @@ function createAliens() {
 
 
         aliens.push({
-            x: 12 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X,
+            x: 12 + i % NB_ALIENS_PER_LINE * ALIEN_SPACE_X + ( 24 - alienWidth) / 2 | 0,
             y: 100 + line * ALIEN_SPACE_Y,
             width: alienWidth,
             height: alienHeight,
             points: aliensMap[i],
             direction: 1,
-            spriteIndex: 0,
+            spriteIndex: 1,
         });
     }
     return aliens;
@@ -68,6 +70,13 @@ function animateAliens() {
 
     if (Date.now() - lastAlienMovement > aliensTimer) {
         lastAlienMovement = Date.now(); //mise a jour de l'instant du dernier mouvement du joueur à "maintenant" 
+
+        sounds['invader' + alienSoundNb].play();
+        alienSoundNb++;
+        if (alienSoundNb > 4) {
+            alienSoundNb = 1;
+        }    
+
         // récupération du x de l'alien le plus à droite( et à gauche )
 
         let extremeRightAlien = Math.max(...aliens.map(a => a.x)) + ALIEN_SPACE_X;
@@ -85,6 +94,14 @@ function animateAliens() {
             else {
                 aliens[i].x += 12 * aliens[i].direction;
             }
+            aliens[i].spriteIndex = (aliens[i].spriteIndex === 0) ? 1 : 0;
+            /*if (aliens[i].spriteIndex = 0) {
+                aliens[i].spriteIndex = 1;
+
+            } else {
+                aliens[i].spriteIndex = 0;
+            }*/
+
 
         }
 
@@ -98,7 +115,8 @@ function animateAliens() {
                 player.bullet.x <= aliens[i].x + aliens[i].width &&
                 player.bullet.y > aliens[i].y &&
                 player.bullet.y <= aliens[i].y + aliens[i].height) {
-                // collision 
+                // collision
+                createExplosion(aliens[i]); 
                 // argumentation du score du joueur
                 player.score += aliens[i].points;
                 player.bullet = null;
@@ -112,6 +130,14 @@ function animateAliens() {
                 break;
 
             }
+        }
+    }
+
+    //suppression de l'animation explosion
+    for (let i = 0; i < alienExplosion.length; i++) {
+        if (Date.now() - alienExplosion[i].dateCreated > 100) {
+            alienExplosion.splice(i, 1);
+            i--;
         }
     }
 }
@@ -139,4 +165,36 @@ function renderAliens() {
 
         )
     }
+    // Dessin des explosions
+    for (let i = 0; i < alienExplosion.length; i++) {
+        //son
+        sounds['invader_killed'].play();
+        context.drawImage(
+            spritesheet,
+            alienExplosion[i].sprite.x,
+            alienExplosion[i].sprite.y,
+            alienExplosion[i].sprite.width,
+            alienExplosion[i].sprite.height,
+            alienExplosion[i].x,
+            alienExplosion[i].y,
+            alienExplosion[i].sprite.width,
+            alienExplosion[i].sprite.height
+        );
+    }
+
 }
+
+function createExplosion(alien) {
+    alienExplosion.push({
+        x : alien.x,
+        y : alien.y,
+        sprite : {
+            x : 88,
+            y : 25,
+            width : 26,
+            height : 16
+        },
+        dateCreated : Date.now()
+    });
+}
+

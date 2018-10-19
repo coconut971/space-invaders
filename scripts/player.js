@@ -5,6 +5,7 @@ function createPlayer() {
     y : 450,
     speed : 3,
     lives : 3,
+    score : 0,
     sprite : {
         img : spritesheet,
         offsetX : 88,
@@ -93,5 +94,24 @@ function renderPlayer() {
         }    
     
 
+
+}
+
+function renderUI() {
+    // Ecrire le score
+    context.fillStyle = '#0f0';
+    context.font = 'normal 20px "Press Start 2P", cursive';
+    context.textAlign = 'left';
+    context.fillText('SCORE: ' + player.score, 20 , 40);
+
+    // Ecire les vies
+    context.textAlign = 'right';
+    context.fillText('VIE: ' + player.lives, canvas.width - 20 , 40);
+
+    // Dessiner une ligne
+    context.strokeStyle = '#0f0';
+    context.moveTo(20, canvas.height - 20);
+    context.lineTo(canvas.width - 20, canvas.height - 20);
+    context.stroke();
 
 }
